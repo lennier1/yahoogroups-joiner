@@ -13,27 +13,44 @@ function run () {
 	var joinButton = document.getElementById('yg-join-group')
 	var loadDate = new Date();
 	var loadTime = loadDate.getTime();
+	//int numRetries = 0;
 	
 	// Start an interval checking how long we've been trying to join the current group.
 	var joinAttemptInterval = setInterval(function () {
 		var currentDate = new Date();
 		var currentTime = currentDate.getTime();
 		
-		// It's been over 5 minutes since we started trying to join the group.
+		// Check if anti-captcha is displaying an error message.
+		var anticaptchasucks = false;
+		var errorNode = document.getElementsByClassName("captcha-error-node");
+		if (errorNode.length > 0) {
+			if (errorNode[0].innerText.trim() !== "") {						
+				anticaptchasucks = true;
+				}
+			}
+				
+		var errorNode2 = document.getElementsByClassName("antigate_solver recaptcha error");
+		if (errorNode2.length > 0) {
+			if (errorNode2[0].innerText.trim() !== "") {						
+				anticaptchasucks = true;
+			}
+		}
+		
+		// It's been over 5 minutes since we started trying to join the group, or there's an anti-captcha error.
 		// Refresh and try again.
-		if (currentTime - loadTime > 600000) {
+		if (anticaptchasucks || (currentTime - loadTime > 600000)) {
 			loadDate = new Date();
 			loadTime = loadDate.getTime();
+			//numRetries++;
 			location.reload(true)
 		}
+			
 	}, 5000)
 
 	if (!!joinButton) {
 		// group hasn't been joined, start an interval looking for the error message
 		var errorMessageInterval = setInterval(function () {
-			
-
-			
+						
 			// Look for the panel that pops up after clicking Join Group.
 			var panelVisible = false;
 			var joinPanel = document.getElementById('yg-join-group-panel');
@@ -65,23 +82,6 @@ function run () {
 				}
 			}
 			
-			// Check if anti-captcha is displaying an error message.
-			var anticaptchasucks = false;
-			if (panelVisible) {		
-				var errorNode = document.getElementsByClassName("captcha-error-node");
-				if (errorNode.length > 0) {
-					if (errorNode[0].innerText.trim() !== "") {						
-						anticaptchasucks = true;
-					}
-				}
-				
-				var errorNode2 = document.getElementsByClassName("antigate_solver recaptcha error");
-				if (errorNode2.length > 0) {
-					if (errorNode2[0].innerText.trim() !== "") {						
-						anticaptchasucks = true;
-					}
-				}
-			}
 			
 			// Check if Yahoo is displaying an "error loading content" message. It's usually hidden.
 			var yahoosucks = false;
@@ -92,6 +92,12 @@ function run () {
 				}
 			}
 			
+			// Check if Yahoo is displaying a "Verify Your Email Address" message.
+			var verifyEmail = getElementsByClassName("yui3-widget-hd yom-actions");
+			if (verifyEmail.length > 0) {
+				yahoosucks = true;
+			}
+			
 			var errMsg = document.getElementById('err-msg-comment');
 			if (!!errMsg){
 				if (errMsg.innerText.trim() !== "") {						
@@ -100,18 +106,22 @@ function run () {
 			}
 			
 			// If there is an error, clear the interval and reload the page.
-			if (yahoosucks || anticaptchasucks) {
+			if (yahoosucks) {
 				clearInterval(errorMessageInterval)
 				loadDate = new Date();
 				loadTime = loadDate.getTime();
+				//numRetries++;
 				location.reload(true)
-			}
+			}			
 		}, 5000)
 	}
 
 	// group is joined
 	if (!joinButton) {		
 		// send the message
+		//loadDate = new Date();
+		//loadTime = loadDate.getTime();
+		//numRetries = 0;
 		chrome.extension.sendMessage({
 			type: 'joined',
 			group: groupName,

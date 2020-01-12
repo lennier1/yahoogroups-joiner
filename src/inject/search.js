@@ -18,19 +18,30 @@ function run () {
   // highlight the group red in the list
   var groupElementsCollection = document.getElementsByClassName('yg-grp-row')
   for (var i = 0; i < groupElementsCollection.length; i++) {
-    var gname = groupElementsCollection[i].getAttribute('data-gname').toLowerCase()
-    if (gname === requiredGroup.toLowerCase()) {
-      groupElementsCollection[i].style.border = '5px solid red';
+	var gname = groupElementsCollection[i].getAttribute('data-gname').toLowerCase()
+	if (gname === requiredGroup.toLowerCase()) {
+	  groupElementsCollection[i].style.border = '5px solid red';
 	  var links = groupElementsCollection[i].getElementsByTagName('a');
-	        if (links.length > 0) {
+			if (links.length > 0) {
 				clickDelay = Math.round(Math.random() * 2000) + 500;
 				setTimeout(function() {
 					links[0].click();
+					
+					// If the page is displaying a loading message after 5 seconds, refresh and try again.
+					setTimeout(function() {
+						var loadingMessage = document.getElementsByClassName("page-loader yg-button-yellow rnd-crn-2");
+						var hiddenLoadingMessage = document.getElementsByClassName("page-loader yg-button-yellow rnd-crn-2 hide");
+						if ((loadingMessage.length > 0) && (hiddenLoadingMessage.length == 0)) {
+							location.reload(true);
+							return;
+						}
+					}, 5000);
+					
 				}, clickDelay);
 			}
-      found = true;
-      break;
-    }
+	  found = true;
+	  break;
+	}
   }
 
   if (found) return;
@@ -40,13 +51,13 @@ function run () {
   var queryError = document.getElementsByClassName("yg-inline-err-msg");
   if (queryError.length > 0) {
 	clickDelay = Math.round(Math.random() * 2000) + 5000;
-    setTimeout(function() {
+	setTimeout(function() {
 		location.reload(true);
 		return;
 		}, clickDelay);							
 	}
   
-    // include a direct link for groups hidden from the directory
+  // include a direct link for groups hidden from the directory
   var groupList = document.querySelector('#yg-srp-list > ul');
   var li = document.createElement('li')
   li.textContent = "Couldn't find group in directory--click here in case it's just hidden.";
@@ -59,5 +70,16 @@ function run () {
   clickDelay = Math.round(Math.random() * 2000) + 500;
   setTimeout(function() {
 	li.click();
-  }, clickDelay);
+	
+	// If the page is displaying a loading message after 5 seconds, refresh and try again.
+	setTimeout(function() {
+		var loadingMessage = document.getElementsByClassName("page-loader yg-button-yellow rnd-crn-2");
+		var hiddenLoadingMessage = document.getElementsByClassName("page-loader yg-button-yellow rnd-crn-2 hide");
+		if ((loadingMessage.length > 0) && (hiddenLoadingMessage.length == 0)) {
+			location.reload(true);
+			return;
+			}
+		}, 5000);
+	}, clickDelay);
+  
 }

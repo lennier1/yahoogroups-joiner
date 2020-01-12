@@ -34,17 +34,16 @@ function run () {
   }
 
   if (found) return;
-
-
   
-  // If there is no group list, it means the search results didn't load properly.
-  // Refresh and try again.
+  // If there's an error message, it means the search results didn't load properly.
+  // Pause, refresh, and try again.
   var queryError = document.getElementsByClassName("yg-inline-err-msg");
   if (queryError.length > 0) {
-	//if (queryError[0].innerText.trim() !== "") {						
+	clickDelay = Math.round(Math.random() * 2000) + 5000;
+    setTimeout(function() {
 		location.reload(true);
 		return;
-		//}
+		}, clickDelay);							
 	}
   
     // include a direct link for groups hidden from the directory

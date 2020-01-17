@@ -5,6 +5,8 @@ chrome.storage.sync.get({ enabled: 0 }, function (items) {
 })
 
 function run () {
+	var MAX_ATTEMPTS = 3
+	
 	// get group name
 	var groupNameRegex = /^.*?groups\.yahoo\.com\/neo\/groups\/(.+?)\/info.*?$/g
 	var match = groupNameRegex.exec(window.location.href);
@@ -13,7 +15,11 @@ function run () {
 	var joinButton = document.getElementById('yg-join-group')
 	var loadDate = new Date();
 	var loadTime = loadDate.getTime();
-	//int numRetries = 0;
+	let numRetries = sessionStorage.getItem('numRetries');
+	if (numRetries == null) {
+		numRetries = 0;
+	}
+		
 	
 	// Start an interval checking how long we've been trying to join the current group.
 	var joinAttemptInterval = setInterval(function () {
@@ -41,8 +47,23 @@ function run () {
 		if (anticaptchasucks || (currentTime - loadTime > 600000)) {
 			loadDate = new Date();
 			loadTime = loadDate.getTime();
-			//numRetries++;
-			location.reload(true)
+			numRetries++;
+			
+			if (numRetries >= MAX_ATTEMPTS) {
+				// send the failure message
+				chrome.extension.sendMessage({
+					type: 'joinfailed',
+					group: groupName,
+					email: document.getElementById('yucs-meta').getAttribute('data-userid')
+				}, function(response) {
+				// don't care about a response
+				})
+			}
+			else {
+				sessionStorage.setItem('numRetries',numRetries);
+				location.reload(true)
+			}
+			
 		}
 			
 	}, 5000)
@@ -93,9 +114,11 @@ function run () {
 			}
 			
 			// Check if Yahoo is displaying a "Verify Your Email Address" message.
-			var verifyEmail = getElementsByClassName("yui3-widget-hd yom-actions");
-			if (verifyEmail.length > 0) {
-				yahoosucks = true;
+			var verifyEmail = document.getElementsByClassName("yui3-widget-hd yom-actions");
+			if (verifyEmail.length > 1) {
+				if (verifyEmail[1].innerText.trim() !== "") {						
+					yahoosucks = true;
+				}
 			}
 			
 			var errMsg = document.getElementById('err-msg-comment');
@@ -110,18 +133,29 @@ function run () {
 				clearInterval(errorMessageInterval)
 				loadDate = new Date();
 				loadTime = loadDate.getTime();
-				//numRetries++;
-				location.reload(true)
+				numRetries++;
+							
+				if (numRetries >= MAX_ATTEMPTS) {
+					// send the failure message
+					chrome.extension.sendMessage({
+						type: 'joinfailed',
+						group: groupName,
+						email: document.getElementById('yucs-meta').getAttribute('data-userid')
+					}, function(response) {
+					// don't care about a response
+					})
+				}
+				else {
+					sessionStorage.setItem('numRetries',numRetries);
+					location.reload(true)
+				}
 			}			
 		}, 5000)
 	}
 
 	// group is joined
 	if (!joinButton) {		
-		// send the message
-		//loadDate = new Date();
-		//loadTime = loadDate.getTime();
-		//numRetries = 0;
+		// send the success message
 		chrome.extension.sendMessage({
 			type: 'joined',
 			group: groupName,

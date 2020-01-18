@@ -70,48 +70,35 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 	else {
 		getUrl += 'joinfailed/';
 	}
-	getUrl += encodeURIComponent(group) + '/' + encodeURIComponent(email) + '/';
-	
-	//TODO: Get join failed endpoint to work. For now, just give up and get a new group.
-	if (request.type === 'joinfailed') {
-		// get a new group, and run again!
-          requestGroup(function (url) {
-            console.log('got back res', url)
-            if (url === null) {
-              return alert('no more groups available')
-            }
-            chrome.tabs.remove(sender.tab.id);
-            setTimeout(function() {
-              chrome.tabs.update(null, {url: url});
-            }, 250);
-          })
+	getUrl += encodeURIComponent(group) + '/';
+	if (request.type === 'joined') {
+		getUrl += encodeURIComponent(email) + '/';
 	}
-	
-	else {
-		var request = new XMLHttpRequest()
-		request.onreadystatechange = function () {
-			//return alert('Reporting join failed, this.readyState = ' + this.readyState + ', this.status = ' + this.status);
-			if (this.readyState === 4) {
-				if (this.status !== 200) {
-				console.error(status)
-				return alert('Error reporting join successful to server - check dev console')
-				} else {
-					// get a new group, and run again!
-					requestGroup(function (url) {
-						console.log('got back res', url)
-						if (url === null) {
-							return alert('no more groups available')
-						}
-						chrome.tabs.remove(sender.tab.id);
-						setTimeout(function() {
-						chrome.tabs.update(null, {url: url});
-						}, 250);
-					})
-				}
+		
+	// Send the results back to the server.
+	var request = new XMLHttpRequest()
+	request.onreadystatechange = function () {
+		if (this.readyState === 4) {
+			if (this.status !== 200) {
+			console.error(status)
+			return alert('Error reporting join successful to server - check dev console')
+			} else {
+				// get a new group, and run again!
+				requestGroup(function (url) {
+					console.log('got back res', url)
+					if (url === null) {
+						return alert('no more groups available')
+					}
+					chrome.tabs.remove(sender.tab.id);
+					setTimeout(function() {
+					chrome.tabs.update(null, {url: url});
+					}, 250);
+				})
 			}
 		}
+	}
     request.open('GET', getUrl, true)
     request.send()
-	}
+
   }
 })

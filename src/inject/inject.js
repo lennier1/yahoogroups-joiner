@@ -1,3 +1,6 @@
+// Comment to group owner. Must be under 200 characters.
+var JOIN_COMMENT = "Archiveteam.org is creating a public archive of Yahoo Groups before Yahoo permanently deletes their data after January 31. May we archive your group, please? Accept request if yes, deny if no."
+
 chrome.storage.sync.get({ enabled: 0 }, function (items) {
 	if (items.enabled) {
 		run()
@@ -20,7 +23,6 @@ function run () {
 		numRetries = 0;
 	}
 		
-	
 	// Start an interval checking how long we've been trying to join the current group.
 	var joinAttemptInterval = setInterval(function () {
 		var currentDate = new Date();
@@ -71,7 +73,13 @@ function run () {
 	if (!!joinButton) {
 		// group hasn't been joined, start an interval looking for the error message
 		var errorMessageInterval = setInterval(function () {
-						
+			
+			// Check if group requires adult consent.
+			var adultConsent = document.getElementsByClassName("bg-red yg-button yg-mygrp-btn");
+			if (adultConsent.length > 0) {
+				adultConsent[0].click();
+			}
+			
 			// Look for the panel that pops up after clicking Join Group.
 			var panelVisible = false;
 			var joinPanel = document.getElementById('yg-join-group-panel');
@@ -92,7 +100,7 @@ function run () {
 			// Check if the group is asking for a commment to join.
 			var commentBox = document.getElementById('owner_comment')
 			if (!!commentBox) {
-				commentBox.value = "Archive Team is creating a public archive of Yahoo Groups before Yahoo permanently deletes their data after January 31. May we archive your group, please?";
+				commentBox.value = JOIN_COMMENT;
 			}
 			
 			// If Send Request is enabled (meaning the captcha has been solved correctly), click it.	
